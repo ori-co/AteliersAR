@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Registers an existing image target (image-targets/<Name>.json):
-//   1. adds its require() to src/app.js
-//   2. adds an Image Target entity tracking it at the root of the main space in src/.expanse.json
-// Usage (from anywhere): node .claude/skills/add-target/add-to-scene.mjs "<Name>" ["<Entity name>"]
+// Registers an existing image target of a project (<project>/image-targets/<Name>.json):
+//   1. adds its require() to <project>/src/app.js
+//   2. adds an Image Target entity tracking it at the root of the main space in <project>/src/.expanse.json
+// <project> is ateliers/<slug>/, or template/ for "template".
+// Usage (from anywhere): node .claude/skills/add-target/add-to-scene.mjs <slug|template> "<Name>" ["<Entity name>"]
 // Entity name defaults to "Cible d'image - <Name>". The entity is empty: its content is added in Studio.
 
 import { randomUUID } from 'node:crypto'
@@ -11,20 +12,22 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
-const SCENE = join(ROOT, 'src', '.expanse.json')
-const APP_JS = join(ROOT, 'src', 'app.js')
 
 // Orientation of the Image Target entities created in Studio (target image flat, facing up).
 const ROTATION = [-4.329780281177466e-17, -0.7071067811865476, -0.7071067811865475, 4.329780281177467e-17]
 
 const fail = msg => { console.error(`ERROR  ${msg}`); process.exit(1) }
 
-const [name, entityArg] = process.argv.slice(2).map(s => s.trim())
-if (!name) fail('usage: add-to-scene.mjs "<Name>" ["<Entity name>"]')
+const [slug, name, entityArg] = process.argv.slice(2).map(s => s.trim())
+if (!slug || !name) fail('usage: add-to-scene.mjs <slug|template> "<Name>" ["<Entity name>"]')
+const PROJECT = slug === 'template' ? join(ROOT, 'template') : join(ROOT, 'ateliers', slug)
+if (!existsSync(PROJECT)) fail(`${PROJECT} does not exist`)
+const SCENE = join(PROJECT, 'src', '.expanse.json')
+const APP_JS = join(PROJECT, 'src', 'app.js')
 const entityName = entityArg || `Cible d'image - ${name}`
 
 const jsonFile = `${name}.json`
-const jsonPath = join(ROOT, 'image-targets', jsonFile)
+const jsonPath = join(PROJECT, 'image-targets', jsonFile)
 if (!existsSync(jsonPath)) fail(`image-targets/${jsonFile} does not exist: run make-target.py first`)
 const target = JSON.parse(readFileSync(jsonPath, 'utf8'))
 if (target.name !== name) fail(`image-targets/${jsonFile} has "name": "${target.name}", expected "${name}"`)

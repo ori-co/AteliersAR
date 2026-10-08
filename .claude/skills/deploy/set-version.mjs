@@ -1,18 +1,20 @@
 #!/usr/bin/env node
-// Sets the version label of the HTML overlay (element id="ar-version" in src/index.html). Touches nothing else.
-// Usage (from anywhere): node .claude/skills/deploy/set-version.mjs "V1.8 - What changed"
+// Sets the version label of the HTML overlay (element id="ar-version" in <project>/src/index.html). Touches nothing else.
+// Usage (from anywhere): node .claude/skills/deploy/set-version.mjs <slug|template> "V1.8 - What changed"
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
-const INDEX = join(ROOT, 'src', 'index.html')
-
 const fail = msg => { console.error(`ERROR  ${msg}`); process.exit(1) }
 
-const label = process.argv.slice(2).join(' ').trim()
-if (!label) fail('usage: set-version.mjs "<label>"')
+const [slug, ...words] = process.argv.slice(2)
+const label = words.join(' ').trim()
+if (!slug || !label) fail('usage: set-version.mjs <slug|template> "<label>"')
+const PROJECT = slug === 'template' ? join(ROOT, 'template') : join(ROOT, 'ateliers', slug)
+if (!existsSync(PROJECT)) fail(`${PROJECT} does not exist`)
+const INDEX = join(PROJECT, 'src', 'index.html')
 // The label is written as raw HTML text and looked up as-is in the deployed index.html
 if (/[<>&"]/.test(label)) fail('the label cannot contain < > & or "')
 

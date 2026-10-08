@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Generate an 8thWall image target from a JPG/PNG, the way 8thWall Studio does.
 
-Writes to image-targets/:
+Writes to <project>/image-targets/ (<project> is ateliers/<slug>/, or template/ for "template"):
   <Name>.json, <Name>_original.png, <Name>_cropped.png, <Name>_luminance.png, <Name>_thumbnail.png
 
 Usage (from anywhere):
-  python .claude/skills/add-target/make-target.py <image> "<Name>" [--crop LEFT,TOP,WIDTH,HEIGHT]
+  python .claude/skills/add-target/make-target.py <slug|template> <image> "<Name>" [--crop LEFT,TOP,WIDTH,HEIGHT]
 
 Without --crop, the largest centered 3:4 portrait area is used.
 A landscape image is first rotated 90° clockwise (as Studio stores landscape targets).
@@ -29,7 +29,6 @@ except ImportError:
     sys.exit('ERROR  Pillow is missing: pip install Pillow')
 
 ROOT = Path(__file__).resolve().parents[3]
-TARGETS = ROOT / 'image-targets'
 LUMINANCE_SIZE = (480, 640)
 THUMBNAIL_SIZE = (263, 350)
 
@@ -50,10 +49,17 @@ def centered_crop(w, h):
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument('slug')
     p.add_argument('image')
     p.add_argument('name')
     p.add_argument('--crop', help='LEFT,TOP,WIDTH,HEIGHT in original pixels (3:4 portrait)')
     args = p.parse_args()
+
+    project = ROOT / 'template' if args.slug == 'template' else ROOT / 'ateliers' / args.slug
+    if not project.is_dir():
+        fail(f'{project} does not exist')
+    TARGETS = project / 'image-targets'
+    TARGETS.mkdir(exist_ok=True)
 
     name = args.name.strip()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9 _-]*', name):

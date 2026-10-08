@@ -1,16 +1,19 @@
 #!/usr/bin/env node
-// Pre-deploy checks for the WebAR project.
-// Usage (from anywhere): node .claude/skills/deploy/preflight.mjs
+// Pre-deploy checks for one atelier (or the template).
+// Usage (from anywhere): node .claude/skills/deploy/preflight.mjs <slug|template>
 // Exit code 1 if there is at least one error. Read-only.
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
-const SRC = join(ROOT, 'src')
-const TARGETS = join(ROOT, 'image-targets')
-const DEPLOY_CONFIG = join(ROOT, 'deploy.config.json')
+const slug = process.argv[2]?.trim()
+if (!slug) { console.error('ERROR  usage: preflight.mjs <slug|template>'); process.exit(1) }
+const PROJECT = slug === 'template' ? join(ROOT, 'template') : join(ROOT, 'ateliers', slug)
+if (!existsSync(PROJECT)) { console.error(`ERROR  ${PROJECT} does not exist`); process.exit(1) }
+const SRC = join(PROJECT, 'src')
+const TARGETS = join(PROJECT, 'image-targets')
 
 const errors = []
 const warnings = []
@@ -33,24 +36,25 @@ const existsExact = (dir, name) => { try { return readdirSync(dir).includes(name
 const isHidden = f => f.startsWith('.')
 
 // ── Dependencies ──────────────────────────────────────────────────────
-if (!existsSync(join(ROOT, 'node_modules'))) err('node_modules is missing: run `npm install`')
+info(`project: ${PROJECT}`)
+if (!existsSync(join(PROJECT, 'node_modules'))) warn('node_modules is missing: run `npm ci` in the project before building')
 
-// ── Deploy target ─────────────────────────────────────────────────────
-let deployDir = null
-const noTarget = 'the build can run, but there is nowhere to deploy it'
-if (!existsSync(DEPLOY_CONFIG)) warn(`deploy.config.json is missing: ${noTarget}`)
-else {
+// ── atelier.json (home page entry) ────────────────────────────────────
+if (slug !== 'template') {
   try {
-    const cfg = JSON.parse(readFileSync(DEPLOY_CONFIG, 'utf8'))
-    if (!cfg.dir) warn(`deploy.config.json has no "dir": ${noTarget}`)
-    else {
-      deployDir = resolve(ROOT, cfg.dir)
-      // The deploy replaces this folder entirely: refuse the project itself, its parents and its own folders
-      if ((ROOT + sep).startsWith(deployDir + sep) || deployDir.startsWith(ROOT + sep))
-        err(`deploy.config.json "dir" (${cfg.dir}) is the project, one of its parents or one of its folders: it would be wiped`)
-      info(`deploy target: ${deployDir}${cfg.url ? ` (${cfg.url})` : ''}`)
-    }
-  } catch (e) { err(`deploy.config.json: ${e.message}`) }
+    const meta = JSON.parse(readFileSync(join(PROJECT, 'atelier.json'), 'utf8'))
+    for (const k of ['title', 'client', 'date']) if (!meta[k]) warn(`atelier.json has no "${k}": the home page entry will be incomplete`)
+    info(`home page entry: "${meta.title}" · ${meta.client} · ${meta.date}`)
+  } catch (e) { warn(`atelier.json: ${e.message}`) }
+}
+
+// ── Deploy target: <repo>/<slug>/ ─────────────────────────────────────
+const deployDir = slug === 'template' ? null : join(ROOT, slug)
+if (deployDir) {
+  info(`deploy target: ${slug}/`)
+  // A deploy replaces <repo>/<slug>/ entirely: it must be nothing but a previous build
+  if (existsSync(deployDir) && !existsSync(join(deployDir, 'bundle.js')))
+    err(`${slug}/ exists at the repo root but is not a build: a deploy would wipe it`)
 }
 
 // ── Image targets loaded by app.js ────────────────────────────────────
