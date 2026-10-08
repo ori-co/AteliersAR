@@ -95,6 +95,65 @@
       "parentId": "88453035-dc0f-486d-868a-8ff7c2fda864",
       "order": 0.6644431107322474,
       "disabled": true
+    },
+    "680d0a19-c2a8-4db3-9103-2b3c050bc7e3": {
+      "id": "680d0a19-c2a8-4db3-9103-2b3c050bc7e3",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        -4.329780281177466e-17,
+        -0.7071067811865476,
+        -0.7071067811865475,
+        4.329780281177467e-17
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "geometry": null,
+      "material": null,
+      "parentId": "88453035-dc0f-486d-868a-8ff7c2fda864",
+      "components": {},
+      "name": "Cible d'image - planete-fusee",
+      "imageTarget": {
+        "name": "planete-fusee"
+      },
+      "order": 3.139191317678198
+    },
+    "e8a7a975-de05-4ba3-8230-1f73e281738e": {
+      "id": "e8a7a975-de05-4ba3-8230-1f73e281738e",
+      "position": [
+        0.03446033136091252,
+        0.027562747375262483,
+        -0.26643454932889227
+      ],
+      "rotation": [
+        0.5,
+        0.5,
+        0.4999999999999999,
+        0.5000000000000001
+      ],
+      "scale": [
+        0.008747719862333577,
+        0.008747719862333577,
+        0.008747719862333577
+      ],
+      "geometry": null,
+      "material": null,
+      "parentId": "680d0a19-c2a8-4db3-9103-2b3c050bc7e3",
+      "components": {},
+      "gltfModel": {
+        "src": {
+          "type": "asset",
+          "asset": "assets/fusee.glb"
+        }
+      },
+      "name": "fusee.glb",
+      "order": 1
     }
   },
   "spaces": {

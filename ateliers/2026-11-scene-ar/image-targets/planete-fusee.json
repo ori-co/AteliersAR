@@ -1,0 +1,23 @@
+{
+  "type": "PLANAR",
+  "properties": {
+    "top": 33,
+    "left": 0,
+    "width": 1243,
+    "height": 1657,
+    "isRotated": true,
+    "originalWidth": 1243,
+    "originalHeight": 1723
+  },
+  "imagePath": "image-targets/planete-fusee_luminance.png",
+  "metadata": null,
+  "name": "planete-fusee",
+  "resources": {
+    "originalImage": "planete-fusee_original.png",
+    "croppedImage": "planete-fusee_cropped.png",
+    "thumbnailImage": "planete-fusee_thumbnail.png",
+    "luminanceImage": "planete-fusee_luminance.png"
+  },
+  "created": 1791464881920,
+  "updated": 1791464881920
+}

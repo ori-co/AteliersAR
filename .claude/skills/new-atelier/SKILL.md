@@ -33,7 +33,7 @@ It copies `template/` without `node_modules/` and `dist/`, writes `atelier.json`
 node .claude/skills/deploy/preflight.mjs <slug>
 ```
 
-Expected warnings at this stage: `node_modules` missing, no deploy target. No ERROR.
+Expected at this stage: the warnings `node_modules` missing and no Image Target entity, and the single ERROR `src/app.js loads no image target` (the template has no target: `/add-target` adds the first one). Anything else is a real problem.
 
 ## 3. Hand over to the user
 
