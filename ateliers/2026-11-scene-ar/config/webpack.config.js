@@ -1,3 +1,4 @@
+const fs = require('fs')
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
@@ -8,6 +9,28 @@ const createDev8Plugin = require('./dev8-plugin')
 const rootPath = process.cwd()
 const distPath = path.join(rootPath, 'dist')
 const srcPath = path.join(rootPath, 'src')
+// <dir>/ files matching `pattern` → dist/<dir>/, plus dist/<dir>/index.json (the file list), read by the overlay in src/index.html:
+// photos/ for the gallery, video/ for the video button. No folder or no file: empty list.
+class FolderPlugin {
+  constructor(dir, pattern) {
+    this.dir = dir
+    this.pattern = pattern
+  }
+
+  apply(compiler) {
+    const {Compilation, sources: {RawSource}} = compiler.webpack
+    const dirPath = path.join(rootPath, this.dir)
+    compiler.hooks.thisCompilation.tap('FolderPlugin', (compilation) => {
+      compilation.hooks.processAssets.tap({name: 'FolderPlugin', stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL}, () => {
+        const files = fs.existsSync(dirPath)
+          ? fs.readdirSync(dirPath).filter(f => this.pattern.test(f)).sort()
+          : []
+        files.forEach(f => compilation.emitAsset(`${this.dir}/${f}`, new RawSource(fs.readFileSync(path.join(dirPath, f)))))
+        compilation.emitAsset(`${this.dir}/index.json`, new RawSource(JSON.stringify(files)))
+      })
+    })
+  }
+}
 
 const makeTsLoader = () => ({
   test: /\.ts$/,
@@ -57,6 +80,8 @@ const config = {
         },
       ],
     }),
+    new FolderPlugin('photos', /\.(jpe?g|png)$/i),
+    new FolderPlugin('video', /\.(mp4|webm|mov)$/i),
     createVirtualEntryPlugin({
       srcDir: srcPath,
     }),
