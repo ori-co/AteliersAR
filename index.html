@@ -33,6 +33,8 @@
     a:hover .title, a:active .title { color:var(--accent); }
     .title { font-size:17px; font-weight:500; transition:color 0.2s; }
     .client { font-family:var(--font-mono); font-size:12px; color:var(--muted); }
+    .date { font-family:var(--font-mono); font-size:12px; color:var(--accent); }
+    .date::first-letter { text-transform:uppercase; }
     .empty { padding:16px 0; color:var(--muted); }
   </style>
 </head>
@@ -41,7 +43,7 @@
 <main>
   <h1>Ateliers AR</h1>
   <ul>
-    <li><a href="./2026-11-scene-ar/"><span class="title">Créer sa première scène en réalité augmentée</span><span class="client">Espace culturel Jean d'Ormesson - Atelier numérique</span></a></li>
+    <li><a href="./2026-11-scene-ar/"><time class="date" datetime="2026-11-28">samedi 28 novembre 2026</time><span class="title">Créer sa première scène en réalité augmentée</span><span class="client">Espace culturel Jean d'Ormesson - Atelier numérique</span></a></li>
   </ul>
 </main>
 </body>

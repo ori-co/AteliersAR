@@ -9,6 +9,7 @@ Project docs: [README.md](README.md). Read it before changing anything.
 - **Deploy one atelier at a time.** `/deploy <slug>` only replaces `<slug>/` and `index.html`, never another atelier's build.
 - **Never commit or push.** When work is done, propose a commit message only.
 - Each `src/.expanse.json` is written by 8thWall Studio. Prefer asking the user to change the scene in Studio over hand-editing it. Exceptions: adding an Image Target entity via `.claude/skills/add-target/add-to-scene.mjs`, and a GLB model under it via `.claude/skills/add-model/add-to-scene.mjs`.
+- **After changing the template's overlay** (`template/src/index.html`, or the `template/config/` files it relies on), ask the user which existing ateliers should get the change too, before touching any of them. Never retrofit by default: a delivered atelier must keep working as is. To retrofit, copy the template file but keep the atelier's `<title>`, `og:title` and version label, then rebuild to check (redeploying is still `/deploy`, on request).
 - The version label lives in the HTML overlay (`id="ar-version"` in the atelier's `src/index.html`), not in the scene. Set it with `.claude/skills/deploy/set-version.mjs`.
 - Before writing 8thWall ECS code, read the "ECS gotchas" table in [README.md](README.md#ecs-gotchas).
 - Work one step at a time, validated on the real device. Desktop preview doesn't count.

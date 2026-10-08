@@ -28,17 +28,24 @@ const ateliers = readdirSync(ATELIERS, { withFileTypes: true })
   })
   .sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug))
 
+// "2026-11-28" → "samedi 28 novembre 2026"
+const formatDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d)
+  ? new Date(`${d}T00:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  : d
+
 const indent = template.match(/\n([ \t]*)<!-- ATELIERS/)?.[1] ?? ''
 const items = ateliers.length
   ? ateliers.map(a =>
-      `<li><a href="./${a.slug}/"><span class="title">${escape(a.title)}</span>` +
+      `<li><a href="./${a.slug}/">` +
+      (a.date ? `<time class="date" datetime="${escape(a.date)}">${escape(formatDate(a.date))}</time>` : '') +
+      `<span class="title">${escape(a.title)}</span>` +
       (a.client ? `<span class="client">${escape(a.client)}</span>` : '') +
       '</a></li>').join(`\n${indent}`)
   : '<li class="empty">Aucun atelier pour le moment</li>'
 
 writeFileSync(join(ROOT, 'index.html'), template.replace(PLACEHOLDER, items))
 console.log(`index.html: ${ateliers.length} atelier(s)`)
-ateliers.forEach(a => console.log(`  /${a.slug}/  ${a.title}${a.client ? ` · ${a.client}` : ''}`))
+ateliers.forEach(a => console.log(`  ${a.date || '(no date)'}  /${a.slug}/  ${a.title}${a.client ? ` · ${a.client}` : ''}`))
 
 // Deployed builds at the root that are no atelier (renamed or deleted atelier): left in place, but flagged
 const known = new Set(readdirSync(ATELIERS))

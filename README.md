@@ -53,7 +53,7 @@ ateliers/<slug>/
 │   ├── index.html        # HTML shell + overlay (version label, "find the image" hint)
 │   └── assets/           # GLB models used by the scene
 ├── image-targets/        # Image target files (.json + 4 images each)
-├── photos/               # Image target photos (.jpg/.png), to print. Copied to the build, adds the "Images" gallery and "Télécharger" buttons
+├── photos/               # Image target photos (.jpg/.png), to print. Copied to the build, adds the "Images" gallery button
 ├── video/                # Optional: one video of the whole experience (.mp4/.webm/.mov, portrait). Copied to the build, adds a "Vidéo" button
 ├── scenes/               # Source 3D scenes as .zip (OBJ + MTL + textures), converted to GLB in src/assets/. Not part of the build
 ├── config/               # 8thWall webpack scaffolding (normally leave alone)
@@ -118,7 +118,7 @@ Plain HTML/CSS on top of the AR canvas. Restyle it through the CSS variables on 
 - **Version label** (`id="ar-version"`, top right): shows which build actually runs on the phone (host and browser caches). **Update it with every deploy**, `/deploy <slug> "<label>"` does it. Convention: `V<major>.<minor> - <what changed>`.
 - **Back** (top left): link to `../`, the home page.
 - **Hint** (`id="ar-hint"`): "find the image", hidden on the first `ar-image-found`. If the atelier has photos, it adds a line pointing to "Images" to print one.
-- **Images / Télécharger** (`id="ar-actions"`): only shown if the atelier's `photos/` folder holds images (.jpg/.png). The build copies them to `dist/photos/` with a `photos/index.json` file list. "Images" opens a full-screen gallery explaining that an image can be printed to try the AR, with a download link under each image. "Télécharger" downloads them all, one after the other (a browser may block the following ones). They are public once deployed: only put images meant to be shared.
+- **Images** (`id="ar-gallery-open"`): only shown if the atelier's `photos/` folder holds images (.jpg/.png). The build copies them to `dist/photos/` with a `photos/index.json` file list. It opens a full-screen gallery explaining that an image can be printed to try the AR, with a download link under each image (no "download all": each participant only wants their own drawing). They are public once deployed: only put images meant to be shared.
 - **Video** (`id="ar-video-open"`): only shown if the atelier's `video/` folder holds a video (the first file, alphabetically). The build copies it to `dist/video/` with a `video/index.json` file list. The tap opens it full screen and plays it: Fullscreen API + portrait lock on Android, native player on iPhone. Use H.264 MP4 for iPhone, and keep it light (it is served from the repo).
 
 The page has `<meta name="robots" content="noindex">`, like the home page: the site is reachable by link only.
