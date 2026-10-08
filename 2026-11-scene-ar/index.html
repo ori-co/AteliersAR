@@ -16,8 +16,9 @@
     .ar-ui * { margin:0; padding:0; box-sizing:border-box; }
 
     /* VERSION: tells which build actually runs on the phone (cache). Set by the deploy skill. */
+    .ar-ui [hidden] { display:none !important; }
     .ar-version {
-      position:absolute; top:calc(8px + env(safe-area-inset-top)); left:8px;
+      position:absolute; top:calc(8px + env(safe-area-inset-top)); right:8px;
       padding:2px 6px; background:rgba(0,0,0,0.5);
       font-family:var(--font-mono); font-size:10px; color:#fff;
     }
@@ -45,5 +46,108 @@
       50%      { transform:scale(0.85); }
     }
     .ar-hint-title { font-size:17px; font-weight:500; }
-    .ar-hint-sub { font-family:var(--font-mono); font-size:11px; line-height:1.6; color:var(--muted); }</style></head><body><script src="bundle.js"></script><div class="ar-ui"><div class="ar-version" id="ar-version">V0.1 - Template</div><div class="ar-hint" id="ar-hint"><div class="ar-hint-frame"></div><p class="ar-hint-title">Cherchez l'image</p><p class="ar-hint-sub">Visez l'image avec la caméra</p></div></div><script>// Events on window, sent by src/target-events.ts: 'ar-image-found' / 'ar-image-lost' (target name in detail)
-  window.addEventListener('ar-image-found', () => document.getElementById('ar-hint').classList.add('hidden'), {once: true})</script></body></html>
+    .ar-hint-sub { font-family:var(--font-mono); font-size:11px; line-height:1.6; color:var(--muted); }
+
+    /* BUTTONS: back to the home page (top left); gallery and download (bottom), only if the atelier has photos; video, only if it has one */
+    .ar-btn {
+      pointer-events:auto; cursor:pointer;
+      display:inline-flex; align-items:center; gap:6px; padding:10px 14px;
+      background:rgba(28,30,34,0.75); border:0.5px solid var(--border);
+      font:500 14px var(--font); color:var(--text); text-decoration:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .ar-btn:active { color:var(--accent); }
+    .ar-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .ar-back { position:absolute; top:calc(12px + env(safe-area-inset-top)); left:12px; }
+    .ar-actions {
+      position:absolute; left:0; right:0; bottom:calc(20px + env(safe-area-inset-bottom));
+      display:flex; justify-content:center; gap:10px;
+    }
+
+    /* GALLERY: the photos of photos/ (copied by the build), to view, download and print */
+    .ar-gallery {
+      position:fixed; inset:0; pointer-events:auto; overflow-y:auto;
+      padding:calc(64px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+      display:flex; flex-direction:column; align-items:center; gap:28px;
+      background:var(--bg);
+    }
+    .ar-gallery-close { position:fixed; top:calc(12px + env(safe-area-inset-top)); right:12px; }
+    .ar-gallery-info { max-width:480px; font-size:14px; line-height:1.5; text-align:center; color:var(--muted); }
+    .ar-gallery figure { width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .ar-gallery img { width:100%; display:block; }
+
+    /* VIDEO: the video of video/ (copied by the build), played full screen. Portrait video: fits the height of the phone held upright */
+    .ar-video { position:fixed; inset:0; pointer-events:auto; background:#000; }
+    .ar-video video { width:100%; height:100%; display:block; object-fit:contain; }
+    .ar-video-close { position:absolute; top:calc(12px + env(safe-area-inset-top)); right:12px; z-index:1; }</style></head><body><script src="bundle.js"></script><div class="ar-ui"><div class="ar-version" id="ar-version">V0.2 - Retour et galerie</div><a class="ar-btn ar-back" href="../"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Retour</a><div class="ar-hint" id="ar-hint"><div class="ar-hint-frame"></div><p class="ar-hint-title">Cherchez l'image</p><p class="ar-hint-sub">Visez l'image avec la caméra</p><p class="ar-hint-sub" id="ar-hint-print" hidden>Pas d'image sous la main ? Ouvrez « Images » pour l'imprimer</p></div><div class="ar-actions"><button class="ar-btn" id="ar-video-open" hidden><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>Vidéo</button> <button class="ar-btn" id="ar-gallery-open" hidden><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>Images</button> <button class="ar-btn" id="ar-download" hidden><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Télécharger</button></div><div class="ar-gallery" id="ar-gallery" hidden><button class="ar-btn ar-gallery-close" id="ar-gallery-close">Fermer</button><p class="ar-gallery-info">Imprimez une de ces images, puis visez-la avec la caméra du téléphone pour voir apparaître la scène en réalité augmentée.</p></div><div class="ar-video" id="ar-video" hidden><button class="ar-btn ar-video-close" id="ar-video-close">Fermer</button><video id="ar-video-player" playsinline controls preload="metadata"></video></div></div><script>// Events on window, sent by src/target-events.ts: 'ar-image-found' / 'ar-image-lost' (target name in detail)
+  window.addEventListener('ar-image-found', () => document.getElementById('ar-hint').classList.add('hidden'), {once: true})
+
+  // Photos of the atelier: photos/index.json is written by the build (config/webpack.config.js). No photo, no buttons.
+  fetch('photos/index.json').then(r => r.ok ? r.json() : []).catch(() => []).then((files) => {
+    if (!files.length) return
+    const $ = id => document.getElementById(id)
+    const url = f => `photos/${encodeURIComponent(f)}`
+    const download = (f) => {
+      const a = document.createElement('a')
+      a.href = url(f)
+      a.download = f
+      document.body.append(a)
+      a.click()
+      a.remove()
+    }
+
+    for (const f of files) {
+      const figure = document.createElement('figure')
+      const img = document.createElement('img')
+      img.src = url(f)
+      img.alt = ''
+      img.loading = 'lazy'
+      const link = document.createElement('a')
+      link.className = 'ar-btn'
+      link.href = url(f)
+      link.download = f
+      link.textContent = 'Télécharger'
+      figure.append(img, link)
+      $('ar-gallery').append(figure)
+    }
+
+    $('ar-gallery-open').hidden = false
+    $('ar-download').hidden = false
+    $('ar-hint-print').hidden = false
+    $('ar-gallery-open').addEventListener('click', () => { $('ar-gallery').hidden = false })
+    $('ar-gallery-close').addEventListener('click', () => { $('ar-gallery').hidden = true })
+    // Several files: one after the other, browsers may block the following ones without a short delay
+    $('ar-download').addEventListener('click', () => files.forEach((f, i) => setTimeout(() => download(f), i * 500)))
+  })
+
+  // Video of the whole experience: video/index.json is written by the build. No video, no button. Only the first file is used.
+  fetch('video/index.json').then(r => r.ok ? r.json() : []).catch(() => []).then((files) => {
+    if (!files.length) return
+    const $ = id => document.getElementById(id)
+    const box = $('ar-video')
+    const player = $('ar-video-player')
+    player.src = `video/${encodeURIComponent(files[0])}`
+
+    const close = () => {
+      player.pause()
+      box.hidden = true
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    }
+    // Must run inside the tap: browsers only allow playback with sound and full screen on a user gesture
+    $('ar-video-open').addEventListener('click', () => {
+      box.hidden = false
+      player.currentTime = 0
+      player.play().catch(() => {})
+      if (box.requestFullscreen) {
+        // Android: the whole box goes full screen (keeps the close button), then locks portrait where allowed
+        box.requestFullscreen().then(() => screen.orientation?.lock?.('portrait')).catch(() => {})
+      } else if (player.webkitEnterFullscreen) {
+        // iPhone: no full screen API on elements, only the native video player
+        player.webkitEnterFullscreen()
+      }
+    })
+    $('ar-video-close').addEventListener('click', close)
+    document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && !box.hidden) close() })
+    player.addEventListener('webkitendfullscreen', close)
+    $('ar-video-open').hidden = false
+  })</script></body></html>
