@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>AteliersAR</title>
+  <meta property="og:title" content="AteliersAR">
+  <meta name="description" content="WebAR experience">
+  <meta property="og:description" content="WebAR experience">
+  <script crossorigin="anonymous" src="./external/runtime/runtime.js"></script>
+  <script crossorigin="anonymous" src="./external/xr/xr.js" async="true" data-preload-chunks="face, slam">
+  </script>
+
+  <style>
+    /* HTML overlay on top of the AR canvas. Restyle through the tokens below.
+       The root lets touches through to the AR canvas; children opt back in if they need taps. */
+    .ar-ui {
+      --bg:     #1C1E22;
+      --text:   #DDDBD6;
+      --muted:  #999;
+      --border: #2E3138;
+      --accent: #5BC8C0;
+      --font:      system-ui, sans-serif;
+      --font-mono: ui-monospace, monospace;
+      position:fixed; inset:0; z-index:1000;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      pointer-events:none;
+      font-family:var(--font); color:var(--text);
+    }
+    .ar-ui * { margin:0; padding:0; box-sizing:border-box; }
+
+    /* VERSION: tells which build actually runs on the phone (cache). Set by the deploy skill. */
+    .ar-version {
+      position:absolute; top:calc(8px + env(safe-area-inset-top)); left:8px;
+      padding:2px 6px; background:rgba(0,0,0,0.5);
+      font-family:var(--font-mono); font-size:10px; color:#fff;
+    }
+
+    /* HINT: shown until an image target is found */
+    .ar-hint {
+      margin:0 16px; padding:22px 26px; max-width:300px;
+      display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center;
+      background:rgba(28,30,34,0.6); border:0.5px solid var(--border);
+      transition:opacity 0.4s;
+    }
+    .ar-hint.hidden { opacity:0; }
+    .ar-hint-frame {
+      width:64px; height:64px; position:relative;
+      animation:ar-pulse 2s ease-in-out infinite;
+    }
+    .ar-hint-frame::before, .ar-hint-frame::after {
+      content:''; position:absolute; inset:0;
+      border:2px solid var(--accent);
+      clip-path:polygon(0 0,30% 0,30% 2px,2px 2px,2px 30%,0 30%, 0 70%,2px 70%,2px calc(100% - 2px),30% calc(100% - 2px),30% 100%,0 100%);
+    }
+    .ar-hint-frame::after { transform:scaleX(-1); }
+    @keyframes ar-pulse {
+      0%, 100% { transform:scale(1); }
+      50%      { transform:scale(0.85); }
+    }
+    .ar-hint-title { font-size:17px; font-weight:500; }
+    .ar-hint-sub { font-family:var(--font-mono); font-size:11px; line-height:1.6; color:var(--muted); }
+  </style>
+</head>
+
+<body>
+<script src="bundle.js"></script>
+
+<div class="ar-ui">
+  <div class="ar-version" id="ar-version">V0.1 - Template</div>
+
+  <div class="ar-hint" id="ar-hint">
+    <div class="ar-hint-frame"></div>
+    <p class="ar-hint-title">Cherchez l'image</p>
+    <p class="ar-hint-sub">Visez l'image avec la caméra</p>
+  </div>
+</div>
+
+<script>
+  // Events on window, sent by src/target-events.ts: 'ar-image-found' / 'ar-image-lost' (target name in detail)
+  window.addEventListener('ar-image-found', () => document.getElementById('ar-hint').classList.add('hidden'), {once: true})
+</script>
+
+</body>
+
+</html>
